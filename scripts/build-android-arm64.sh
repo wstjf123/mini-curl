@@ -92,7 +92,7 @@ export PKG_CONFIG_LIBDIR="${PKG_CONFIG_DIR}"
 export CPPFLAGS="-I${DEPS_PREFIX}/include ${CPPFLAGS:-}"
 export CFLAGS="-fPIC ${CFLAGS:-}"
 export CXXFLAGS="-fPIC ${CXXFLAGS:-}"
-export LDFLAGS="-L${DEPS_PREFIX}/lib -L${CXX_RUNTIME_DIR} ${LDFLAGS:-}"
+export LDFLAGS="-L${DEPS_PREFIX}/lib -L${CXX_RUNTIME_DIR} -Wl,--android-tls ${LDFLAGS:-}"
 
 merge_static_libraries() {
   local output_archive="$1"
