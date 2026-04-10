@@ -14,7 +14,7 @@ if [[ "${CURL_VERSION}" == "latest" ]]; then
   CURL_VERSION="$(resolve_latest_curl_version)"
 fi
 
-ANDROID_API="${ANDROID_API:-24}"
+ANDROID_API="${ANDROID_API:-30}"
 TARGET_HOST="aarch64-linux-android"
 ABI="arm64-v8a"
 JOBS="${JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 4)}"
@@ -337,7 +337,7 @@ build_curl() {
 
   pushd "${build_dir}" >/dev/null
     LIBS="-lngtcp2_crypto_boringssl -lngtcp2 -lnghttp3 -lnghttp2 -lssl -lcrypto -lzstd -lbrotlidec -lbrotlicommon -lz ${CPP_RUNTIME_LIBS}"
-    LDFLAGS="${LDFLAGS} -Wl,--android-tls" LIBS="${LIBS}" ./configure \
+    LIBS="${LIBS}" ./configure \
       --host="${TARGET_HOST}" \
       --prefix="${prefix_dir}" \
       --disable-dependency-tracking \
