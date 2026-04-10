@@ -56,6 +56,13 @@ DIST_DIR="${ROOT_DIR}/dist/curl-${CURL_VERSION}-android-${ABI}"
 DEPS_PREFIX="${BUILD_ROOT}/deps-prefix"
 PKG_CONFIG_DIR="${DEPS_PREFIX}/lib/pkgconfig"
 WORK_DIR="${BUILD_ROOT}/work"
+CXX_RUNTIME_DIR="${TOOLCHAIN}/sysroot/usr/lib/${TARGET_HOST}"
+if [[ ! -d "${CXX_RUNTIME_DIR}" ]]; then
+  CXX_RUNTIME_DIR="${TOOLCHAIN}/sysroot/usr/lib/${TARGET_HOST}/${ANDROID_API}"
+fi
+LIBCXX_STATIC="${CXX_RUNTIME_DIR}/libc++_static.a"
+LIBCXXABI_STATIC="${CXX_RUNTIME_DIR}/libc++abi.a"
+LIBUNWIND_STATIC="${CXX_RUNTIME_DIR}/libunwind.a"
 
 mkdir -p "${DOWNLOAD_DIR}" "${SRC_DIR}" "${BUILD_ROOT}" "${DEPS_PREFIX}" "${PKG_CONFIG_DIR}" "${WORK_DIR}"
 
@@ -318,7 +325,7 @@ build_curl() {
   cp -R "${source_dir}" "${build_dir}"
 
   pushd "${build_dir}" >/dev/null
-    LIBS="-lngtcp2_crypto_boringssl -lngtcp2 -lnghttp3 -lnghttp2 -lssl -lcrypto -lzstd -lbrotlidec -lbrotlicommon -lz"
+    LIBS="-lngtcp2_crypto_boringssl -lngtcp2 -lnghttp3 -lnghttp2 -lssl -lcrypto -lzstd -lbrotlidec -lbrotlicommon -lz ${LIBCXX_STATIC} ${LIBCXXABI_STATIC} ${LIBUNWIND_STATIC}"
     LIBS="${LIBS}" ./configure \
       --host="${TARGET_HOST}" \
       --prefix="${prefix_dir}" \
@@ -353,7 +360,10 @@ build_curl() {
     "${DEPS_PREFIX}/lib/libzstd.a" \
     "${DEPS_PREFIX}/lib/libbrotlidec.a" \
     "${DEPS_PREFIX}/lib/libbrotlicommon.a" \
-    "${DEPS_PREFIX}/lib/libz.a"
+    "${DEPS_PREFIX}/lib/libz.a" \
+    "${LIBCXX_STATIC}" \
+    "${LIBCXXABI_STATIC}" \
+    "${LIBUNWIND_STATIC}"
 
   cat > "${DIST_DIR}/BUILD_INFO.txt" <<EOF
 CURL_VERSION=${CURL_VERSION}
