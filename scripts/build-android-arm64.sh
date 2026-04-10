@@ -92,7 +92,7 @@ export PKG_CONFIG_LIBDIR="${PKG_CONFIG_DIR}"
 export CPPFLAGS="-I${DEPS_PREFIX}/include ${CPPFLAGS:-}"
 export CFLAGS="-fPIC ${CFLAGS:-}"
 export CXXFLAGS="-fPIC ${CXXFLAGS:-}"
-export LDFLAGS="-L${DEPS_PREFIX}/lib -L${CXX_RUNTIME_DIR} -Wl,--android-tls ${LDFLAGS:-}"
+export LDFLAGS="-L${DEPS_PREFIX}/lib -L${CXX_RUNTIME_DIR} ${LDFLAGS:-}"
 
 merge_static_libraries() {
   local output_archive="$1"
@@ -337,7 +337,7 @@ build_curl() {
 
   pushd "${build_dir}" >/dev/null
     LIBS="-lngtcp2_crypto_boringssl -lngtcp2 -lnghttp3 -lnghttp2 -lssl -lcrypto -lzstd -lbrotlidec -lbrotlicommon -lz ${CPP_RUNTIME_LIBS}"
-    LIBS="${LIBS}" ./configure \
+    LDFLAGS="${LDFLAGS} -Wl,--android-tls" LIBS="${LIBS}" ./configure \
       --host="${TARGET_HOST}" \
       --prefix="${prefix_dir}" \
       --disable-dependency-tracking \
