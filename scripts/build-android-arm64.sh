@@ -250,6 +250,7 @@ build_nghttp2() {
   rm -rf "${build_dir}"
   cmake_configure "${source_dir}" "${build_dir}" \
     -DBUILD_SHARED_LIBS=OFF \
+    -DBUILD_STATIC_LIBS=ON \
     -DENABLE_APP=OFF \
     -DENABLE_ASIO_LIB=OFF \
     -DENABLE_EXAMPLES=OFF \
