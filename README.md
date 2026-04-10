@@ -52,6 +52,8 @@ ANDROID_API=30 JOBS=8 ./scripts/build-android-arm64.sh
 
 `lib/libcurl.a` is a merged static archive containing curl plus its compression, TLS, HTTP/2, and HTTP/3 dependencies.
 
+`bin/curl` is relinked as an Android-native PIE that keeps core system dependencies dynamic (`libc.so`, `libm.so`, `libdl.so`, `libz.so`) instead of trying to fold them into a self-contained executable.
+
 ## GitHub Actions
 
 Workflow file: `.github/workflows/android-arm64.yml`
