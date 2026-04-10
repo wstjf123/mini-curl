@@ -170,7 +170,7 @@ build_zlib() {
   local archive="${DOWNLOAD_DIR}/zlib-${version}.tar.gz"
   local source_dir="${SRC_DIR}/zlib-${version}"
   local build_dir="${WORK_DIR}/zlib"
-  fetch_archive "https://www.zlib.net/fossils/zlib-${version}.tar.gz" "${archive}"
+  fetch_archive "https://github.com/madler/zlib/archive/refs/tags/v${version}.tar.gz" "${archive}"
   extract_archive "${archive}" "${source_dir}"
   rm -rf "${build_dir}"
   cp -R "${source_dir}" "${build_dir}"
