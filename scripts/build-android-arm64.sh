@@ -64,6 +64,16 @@ LIBCXX_STATIC="${CXX_RUNTIME_DIR}/libc++_static.a"
 LIBCXXABI_STATIC="${CXX_RUNTIME_DIR}/libc++abi.a"
 LIBUNWIND_STATIC="${CXX_RUNTIME_DIR}/libunwind.a"
 CPP_RUNTIME_LIBS="-lc++_static -lc++abi -lunwind"
+MERGE_RUNTIME_LIBS=()
+if [[ -f "${LIBCXX_STATIC}" ]]; then
+  MERGE_RUNTIME_LIBS+=("${LIBCXX_STATIC}")
+fi
+if [[ -f "${LIBCXXABI_STATIC}" ]]; then
+  MERGE_RUNTIME_LIBS+=("${LIBCXXABI_STATIC}")
+fi
+if [[ -f "${LIBUNWIND_STATIC}" ]]; then
+  MERGE_RUNTIME_LIBS+=("${LIBUNWIND_STATIC}")
+fi
 
 mkdir -p "${DOWNLOAD_DIR}" "${SRC_DIR}" "${BUILD_ROOT}" "${DEPS_PREFIX}" "${PKG_CONFIG_DIR}" "${WORK_DIR}"
 
@@ -362,9 +372,7 @@ build_curl() {
     "${DEPS_PREFIX}/lib/libbrotlidec.a" \
     "${DEPS_PREFIX}/lib/libbrotlicommon.a" \
     "${DEPS_PREFIX}/lib/libz.a" \
-    "${LIBCXX_STATIC}" \
-    "${LIBCXXABI_STATIC}" \
-    "${LIBUNWIND_STATIC}"
+    "${MERGE_RUNTIME_LIBS[@]}"
 
   cat > "${DIST_DIR}/BUILD_INFO.txt" <<EOF
 CURL_VERSION=${CURL_VERSION}
