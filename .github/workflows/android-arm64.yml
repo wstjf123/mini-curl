@@ -10,7 +10,7 @@ on:
       boringssl_ref:
         description: BoringSSL git ref
         required: false
-        default: master
+        default: main
 
 jobs:
   build:
@@ -49,7 +49,7 @@ jobs:
         env:
           ANDROID_NDK_HOME: ${{ env.ANDROID_SDK_ROOT }}/ndk/27.0.12077973
           CURL_VERSION: ${{ inputs.curl_version || '8.19.0' }}
-          BORINGSSL_REF: ${{ inputs.boringssl_ref || 'master' }}
+          BORINGSSL_REF: ${{ inputs.boringssl_ref || 'main' }}
         run: |
           chmod +x scripts/build-android-arm64.sh
           ./scripts/build-android-arm64.sh
