@@ -94,6 +94,64 @@ export CFLAGS="-fPIC ${CFLAGS:-}"
 export CXXFLAGS="-fPIC ${CXXFLAGS:-}"
 export LDFLAGS="-L${DEPS_PREFIX}/lib -L${CXX_RUNTIME_DIR} ${LDFLAGS:-}"
 
+makefile_list_var() {
+  local makefile_path="$1"
+  local variable_name="$2"
+  python - "$makefile_path" "$variable_name" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+target = sys.argv[2]
+text = path.read_text()
+logical_lines = []
+current = ""
+for raw_line in text.splitlines():
+    line = raw_line.rstrip()
+    if not line:
+        if current:
+            logical_lines.append(current)
+            current = ""
+        continue
+    if current:
+        current += line.lstrip()
+    else:
+        current = line
+    if current.endswith("\\"):
+        current = current[:-1] + " "
+        continue
+    logical_lines.append(current)
+    current = ""
+if current:
+    logical_lines.append(current)
+
+vars_map = {}
+for line in logical_lines:
+    match = re.match(r'^([A-Za-z0-9_]+)\s*=\s*(.*)$', line)
+    if match:
+        vars_map[match.group(1)] = match.group(2).strip()
+
+pattern = re.compile(r'\$\(([^)]+)\)')
+
+def expand(value, seen=None):
+    if seen is None:
+        seen = set()
+    def repl(match):
+        name = match.group(1)
+        if name in seen:
+            return ""
+        if name not in vars_map:
+            return ""
+        return expand(vars_map[name], seen | {name})
+    return pattern.sub(repl, value)
+
+expanded = expand(vars_map.get(target, ""))
+for item in expanded.split():
+    print(item)
+PY
+}
+
 merge_static_libraries() {
   local output_archive="$1"
   shift
@@ -323,6 +381,74 @@ build_ngtcp2() {
   cmake --install "${build_dir}"
 }
 
+build_curl_tool() {
+  local build_dir="$1"
+  local prefix_dir="$2"
+  local tool_build_dir="${WORK_DIR}/curl-tool"
+  local source_list_file="${tool_build_dir}/sources.txt"
+  local object_list_file="${tool_build_dir}/objects.txt"
+  local source_file
+  local object_file
+
+  rm -rf "${tool_build_dir}"
+  mkdir -p "${tool_build_dir}/obj" "${prefix_dir}/bin"
+
+  makefile_list_var "${build_dir}/src/Makefile.inc" "CURL_CFILES" > "${source_list_file}"
+
+  if [[ ! -f "${build_dir}/src/tool_hugehelp.c" ]]; then
+    cat > "${build_dir}/src/tool_hugehelp.c" <<'EOF'
+#include "tool_hugehelp.h"
+EOF
+  fi
+
+  printf '%s\n' "tool_hugehelp.c" >> "${source_list_file}"
+  : > "${object_list_file}"
+
+  while IFS= read -r source_file; do
+    [[ -n "${source_file}" ]] || continue
+    object_file="${tool_build_dir}/obj/${source_file//\//_}.o"
+    mkdir -p "$(dirname "${object_file}")"
+    "${CC}" \
+      ${CPPFLAGS} \
+      ${CFLAGS} \
+      -fPIE \
+      -DHAVE_CONFIG_H \
+      -DCURL_STATICLIB \
+      -I"${build_dir}/include" \
+      -I"${build_dir}/lib" \
+      -I"${build_dir}/src" \
+      -I"${build_dir}/src/toolx" \
+      -c "${build_dir}/src/${source_file}" \
+      -o "${object_file}"
+    printf '%s\n' "${object_file}" >> "${object_list_file}"
+  done < "${source_list_file}"
+
+  mapfile -t tool_objects < "${object_list_file}"
+
+  "${CC}" \
+    -fPIE \
+    -pie \
+    -o "${prefix_dir}/bin/curl" \
+    "${tool_objects[@]}" \
+    -Wl,--start-group \
+    "${prefix_dir}/lib/libcurl.a" \
+    "${DEPS_PREFIX}/lib/libngtcp2_crypto_boringssl.a" \
+    "${DEPS_PREFIX}/lib/libngtcp2.a" \
+    "${DEPS_PREFIX}/lib/libnghttp3.a" \
+    "${DEPS_PREFIX}/lib/libnghttp2.a" \
+    "${DEPS_PREFIX}/lib/libssl.a" \
+    "${DEPS_PREFIX}/lib/libcrypto.a" \
+    "${DEPS_PREFIX}/lib/libzstd.a" \
+    "${DEPS_PREFIX}/lib/libbrotlidec.a" \
+    "${DEPS_PREFIX}/lib/libbrotlicommon.a" \
+    "${MERGE_RUNTIME_LIBS[@]}" \
+    -Wl,--end-group \
+    -Wl,-Bdynamic \
+    -lz \
+    -lm \
+    -ldl
+}
+
 build_curl() {
   local archive="${DOWNLOAD_DIR}/curl-${CURL_VERSION}.tar.gz"
   local source_dir="${SRC_DIR}/curl-${CURL_VERSION}"
@@ -341,6 +467,7 @@ build_curl() {
       --host="${TARGET_HOST}" \
       --prefix="${prefix_dir}" \
       --disable-dependency-tracking \
+      --disable-manual \
       --disable-shared \
       --enable-static \
       --without-libpsl \
@@ -354,6 +481,8 @@ build_curl() {
     make -j"${JOBS}"
     make install
   popd >/dev/null
+
+  build_curl_tool "${build_dir}" "${prefix_dir}"
 
   mkdir -p "${DIST_DIR}/bin" "${DIST_DIR}/lib" "${DIST_DIR}/include"
   cp -R "${prefix_dir}/include/"* "${DIST_DIR}/include/"
