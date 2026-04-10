@@ -63,6 +63,7 @@ fi
 LIBCXX_STATIC="${CXX_RUNTIME_DIR}/libc++_static.a"
 LIBCXXABI_STATIC="${CXX_RUNTIME_DIR}/libc++abi.a"
 LIBUNWIND_STATIC="${CXX_RUNTIME_DIR}/libunwind.a"
+CPP_RUNTIME_LIBS="-lc++_static -lc++abi -lunwind"
 
 mkdir -p "${DOWNLOAD_DIR}" "${SRC_DIR}" "${BUILD_ROOT}" "${DEPS_PREFIX}" "${PKG_CONFIG_DIR}" "${WORK_DIR}"
 
@@ -81,7 +82,7 @@ export PKG_CONFIG_LIBDIR="${PKG_CONFIG_DIR}"
 export CPPFLAGS="-I${DEPS_PREFIX}/include ${CPPFLAGS:-}"
 export CFLAGS="-fPIC ${CFLAGS:-}"
 export CXXFLAGS="-fPIC ${CXXFLAGS:-}"
-export LDFLAGS="-L${DEPS_PREFIX}/lib ${LDFLAGS:-}"
+export LDFLAGS="-L${DEPS_PREFIX}/lib -L${CXX_RUNTIME_DIR} ${LDFLAGS:-}"
 
 merge_static_libraries() {
   local output_archive="$1"
@@ -325,7 +326,7 @@ build_curl() {
   cp -R "${source_dir}" "${build_dir}"
 
   pushd "${build_dir}" >/dev/null
-    LIBS="-lngtcp2_crypto_boringssl -lngtcp2 -lnghttp3 -lnghttp2 -lssl -lcrypto -lzstd -lbrotlidec -lbrotlicommon -lz ${LIBCXX_STATIC} ${LIBCXXABI_STATIC} ${LIBUNWIND_STATIC}"
+    LIBS="-lngtcp2_crypto_boringssl -lngtcp2 -lnghttp3 -lnghttp2 -lssl -lcrypto -lzstd -lbrotlidec -lbrotlicommon -lz ${CPP_RUNTIME_LIBS}"
     LIBS="${LIBS}" ./configure \
       --host="${TARGET_HOST}" \
       --prefix="${prefix_dir}" \
