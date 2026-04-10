@@ -217,6 +217,8 @@ build_zstd() {
 build_boringssl() {
   local source_dir="${SRC_DIR}/boringssl"
   local build_dir="${WORK_DIR}/boringssl"
+  local ssl_archive
+  local crypto_archive
   git_clone_or_update "https://github.com/google/boringssl.git" "${BORINGSSL_REF}" "${source_dir}"
   rm -rf "${build_dir}" "${DEPS_PREFIX}/include/openssl"
   cmake_configure "${source_dir}" "${build_dir}" \
@@ -224,10 +226,18 @@ build_boringssl() {
     -DBUILD_TESTING=OFF \
     -DOPENSSL_NO_ASM=1
   cmake --build "${build_dir}" --parallel "${JOBS}" --target ssl crypto
+  ssl_archive="${build_dir}/libssl.a"
+  crypto_archive="${build_dir}/libcrypto.a"
+  if [[ ! -f "${ssl_archive}" ]]; then
+    ssl_archive="${build_dir}/ssl/libssl.a"
+  fi
+  if [[ ! -f "${crypto_archive}" ]]; then
+    crypto_archive="${build_dir}/crypto/libcrypto.a"
+  fi
   mkdir -p "${DEPS_PREFIX}/include" "${DEPS_PREFIX}/lib"
   cp -R "${source_dir}/include/openssl" "${DEPS_PREFIX}/include/openssl"
-  cp "${build_dir}/ssl/libssl.a" "${DEPS_PREFIX}/lib/libssl.a"
-  cp "${build_dir}/crypto/libcrypto.a" "${DEPS_PREFIX}/lib/libcrypto.a"
+  cp "${ssl_archive}" "${DEPS_PREFIX}/lib/libssl.a"
+  cp "${crypto_archive}" "${DEPS_PREFIX}/lib/libcrypto.a"
 }
 
 build_nghttp2() {
