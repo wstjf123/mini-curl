@@ -271,7 +271,8 @@ build_nghttp3() {
   extract_archive "${archive}" "${source_dir}"
   rm -rf "${build_dir}"
   cmake_configure "${source_dir}" "${build_dir}" \
-    -DBUILD_SHARED_LIBS=OFF \
+    -DENABLE_SHARED_LIB=OFF \
+    -DENABLE_STATIC_LIB=ON \
     -DENABLE_LIB_ONLY=ON \
     -DENABLE_EXAMPLES=OFF \
     -DENABLE_TESTS=OFF
@@ -288,13 +289,16 @@ build_ngtcp2() {
   extract_archive "${archive}" "${source_dir}"
   rm -rf "${build_dir}"
   cmake_configure "${source_dir}" "${build_dir}" \
-    -DBUILD_SHARED_LIBS=OFF \
+    -DENABLE_SHARED_LIB=OFF \
+    -DENABLE_STATIC_LIB=ON \
     -DENABLE_LIB_ONLY=ON \
     -DENABLE_OPENSSL=OFF \
     -DENABLE_WOLFSSL=OFF \
     -DENABLE_GNUTLS=OFF \
     -DENABLE_PICOTLS=OFF \
     -DENABLE_BORINGSSL=ON \
+    -DBORINGSSL_INCLUDE_DIR="${DEPS_PREFIX}/include" \
+    -DBORINGSSL_LIBRARIES="${DEPS_PREFIX}/lib/libssl.a;${DEPS_PREFIX}/lib/libcrypto.a" \
     -DENABLE_EXAMPLES=OFF \
     -DENABLE_TESTS=OFF
   cmake --build "${build_dir}" --parallel "${JOBS}"
