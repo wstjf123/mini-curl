@@ -41,6 +41,7 @@ CURL_VERSION=latest ./scripts/build-android-arm64.sh
 CURL_VERSION=8.19.0 ./scripts/build-android-arm64.sh
 BORINGSSL_REF=main ./scripts/build-android-arm64.sh
 ANDROID_API=30 JOBS=8 ./scripts/build-android-arm64.sh
+DEFAULT_CA_PATH=/system/etc/security/cacerts ./scripts/build-android-arm64.sh
 ```
 
 ## Output
@@ -64,6 +65,7 @@ It installs build tooling, builds all dependencies plus curl, and uploads `curl-
 
 - The script currently targets only `arm64-v8a`.
 - The default `ANDROID_API` is `30` to keep the generated executable compatible with modern Android ELF TLS behavior on arm64.
+- The default CA directory is `/system/etc/security/cacerts`; override `DEFAULT_CA_PATH` if your Android environment uses a different trust store path.
 - curl defaults to the latest release by parsing curl's official release table.
 - BoringSSL defaults to `main`; pin `BORINGSSL_REF` if you want reproducible builds.
 - The packaged output intentionally keeps only one static SDK archive: `lib/libcurl.a`.

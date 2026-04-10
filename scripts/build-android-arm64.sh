@@ -26,6 +26,7 @@ NGHTTP2_VERSION="${NGHTTP2_VERSION:-1.68.1}"
 NGHTTP3_VERSION="${NGHTTP3_VERSION:-1.15.0}"
 NGTCP2_VERSION="${NGTCP2_VERSION:-1.22.0}"
 BORINGSSL_REF="${BORINGSSL_REF:-main}"
+DEFAULT_CA_PATH="${DEFAULT_CA_PATH:-/system/etc/security/cacerts}"
 
 NDK_ROOT="${ANDROID_NDK_HOME:-${ANDROID_NDK_ROOT:-}}"
 if [[ -z "${NDK_ROOT}" ]]; then
@@ -471,6 +472,7 @@ build_curl() {
       --disable-shared \
       --enable-static \
       --without-libpsl \
+      --with-ca-path="${DEFAULT_CA_PATH}" \
       --with-zlib="${DEPS_PREFIX}" \
       --with-brotli="${DEPS_PREFIX}" \
       --with-zstd="${DEPS_PREFIX}" \
@@ -516,6 +518,7 @@ NGHTTP2_VERSION=${NGHTTP2_VERSION}
 NGHTTP3_VERSION=${NGHTTP3_VERSION}
 NGTCP2_VERSION=${NGTCP2_VERSION}
 BORINGSSL_REF=${BORINGSSL_REF}
+DEFAULT_CA_PATH=${DEFAULT_CA_PATH}
 FEATURES=gz,deflate,br,zstd,http2,http3
 LIBCURL_LAYOUT=single-archive
 EOF
