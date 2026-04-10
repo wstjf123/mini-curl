@@ -1,17 +1,12 @@
 name: android-arm64
 
 on:
-  push:
-    branches:
-      - main
-      - master
-  pull_request:
   workflow_dispatch:
     inputs:
       curl_version:
         description: curl version to build, or latest
         required: false
-        default: latest
+        default: 8.19.0
       boringssl_ref:
         description: BoringSSL git ref
         required: false
@@ -53,7 +48,7 @@ jobs:
       - name: Build curl for Android arm64
         env:
           ANDROID_NDK_HOME: ${{ env.ANDROID_SDK_ROOT }}/ndk/27.0.12077973
-          CURL_VERSION: ${{ inputs.curl_version || 'latest' }}
+          CURL_VERSION: ${{ inputs.curl_version || '8.19.0' }}
           BORINGSSL_REF: ${{ inputs.boringssl_ref || 'master' }}
         run: |
           chmod +x scripts/build-android-arm64.sh
