@@ -300,8 +300,7 @@ build_boringssl() {
   rm -rf "${build_dir}" "${DEPS_PREFIX}/include/openssl"
   cmake_configure "${source_dir}" "${build_dir}" \
     -DBUILD_SHARED_LIBS=OFF \
-    -DBUILD_TESTING=OFF \
-    -DOPENSSL_NO_ASM=1
+    -DBUILD_TESTING=OFF
   cmake --build "${build_dir}" --parallel "${JOBS}" --target ssl crypto
   ssl_archive="${build_dir}/libssl.a"
   crypto_archive="${build_dir}/libcrypto.a"
